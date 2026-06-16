@@ -1,10 +1,24 @@
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useState, useCallback } from 'react-router-dom'
 import movies from '../movies.json'
 
 interface Movie {
   id: number; title: string; year: number; rating: number
   director: string; genre: string[]; cast: string[]; plot: string
   poster: string; runtime: string
+}
+
+function PosterFallback({ title }: { title: string }) {
+  const initials = title.split(' ').slice(0, 2).map(w => w[0]).join('')
+  return (
+    <div className="poster-placeholder poster-placeholder-lg"><span>{initials}</span></div>
+  )
+}
+
+function MoviePoster({ src, title }: { src: string; title: string }) {
+  const [failed, setFailed] = useState(false)
+  const onError = useCallback(() => setFailed(true), [])
+  if (failed) return <PosterFallback title={title} />
+  return <img src={src} alt={title} onError={onError} />
 }
 
 export default function MovieDetail() {
@@ -34,7 +48,7 @@ export default function MovieDetail() {
 
       <main className="container detail">
         <div className="detail-poster">
-          <img src={movie.poster} alt={movie.title} />
+          <MoviePoster src={movie.poster} title={movie.title} />
         </div>
         <div className="detail-info">
           <h1 className="detail-title">{movie.title} <span className="detail-year">({movie.year})</span></h1>

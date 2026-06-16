@@ -1,5 +1,5 @@
 import movies from '../movies.json'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 
 interface Movie {
@@ -13,6 +13,20 @@ function StarRating({ rating }: { rating: number }) {
   return (
     <span className="stars">{'★'.repeat(stars)}{'☆'.repeat(5 - stars)}</span>
   )
+}
+
+function PosterFallback({ title }: { title: string }) {
+  const initials = title.split(' ').slice(0, 2).map(w => w[0]).join('')
+  return (
+    <div className="poster-placeholder"><span>{initials}</span></div>
+  )
+}
+
+function MoviePoster({ src, title }: { src: string; title: string }) {
+  const [failed, setFailed] = useState(false)
+  const onError = useCallback(() => setFailed(true), [])
+  if (failed) return <PosterFallback title={title} />
+  return <img src={src} alt={title} loading="lazy" onError={onError} />
 }
 
 export default function HomePage() {
@@ -60,7 +74,7 @@ export default function HomePage() {
           {filtered.map(m => (
             <Link to={`/movie/${m.id}`} key={m.id} className="card">
               <div className="card-poster">
-                <img src={m.poster} alt={m.title} loading="lazy" />
+                <MoviePoster src={m.poster} title={m.title} />
               </div>
               <div className="card-body">
                 <h3 className="card-title">{m.title}</h3>
